@@ -1,3 +1,7 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
 const BACKEND = import.meta.env.VITE_API_URL;
 
 const GitHubIcon = () => (
@@ -13,8 +17,20 @@ const GitHubIcon = () => (
 );
 
 const Login = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [loading, navigate, user]);
+
   const handleLogin = () => {
-    window.location.href = `${BACKEND}/auth/github`;
+    const redirect = encodeURIComponent(
+      `${window.location.origin}/auth/callback`
+    );
+    window.location.href = `${BACKEND}/auth/github?redirect=${redirect}`;
   };
 
   return (
