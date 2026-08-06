@@ -19,9 +19,23 @@ const server = http.createServer(app);
 initSocket(server);
 connectDB();
 
+app.set("trust proxy", 1);
+
+const allowedOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -37,6 +51,7 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7,
