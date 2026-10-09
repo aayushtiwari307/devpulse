@@ -1,6 +1,4 @@
 require("dotenv").config();
-const { initRedis } = require("./config/redis");
-initRedis();
 const express = require("express");
 const http = require("http");
 const cors = require("cors");

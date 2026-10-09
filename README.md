@@ -31,13 +31,13 @@ Real-time GitHub activity dashboard. Log in with GitHub, point a webhook at the 
 - **Signature verification:** the raw request body is HMAC-SHA256 signed with the webhook secret and compared to the `X-Hub-Signature-256` header using `crypto.timingSafeEqual`.
 - **Sessions over JWT:** the OAuth authorization-code flow is server-side, so a session cookie is simpler and revocable.
 - **Socket.io rooms:** one room per GitHub user id, so a webhook event is emitted only to the right browser tabs.
-- **Redis:** Upstash Redis is wired in as a REST key-value client. An earlier design used Redis pub/sub between the webhook handler and Socket.io, but Upstash's REST client does not support pub/sub, so the handler emits to Socket.io directly. That is correct for a single server instance; running several instances would need a pub/sub layer again (for example the Socket.io Redis adapter).
+- **No Redis or pub/sub:** the webhook handler emits straight to the owner's Socket.io room. That is correct for a single server instance; running several instances would need a shared layer (for example the Socket.io Redis adapter) so every instance can reach every client.
 
 ## Tech stack
 
 - Frontend: React, Vite, React Router, Context API, Axios, Socket.io client, Recharts
 - Backend: Node.js, Express, Passport (GitHub OAuth), express-session + connect-mongo, Socket.io
-- Data: MongoDB Atlas (Mongoose), Upstash Redis
+- Data: MongoDB Atlas (Mongoose)
 
 ## Project structure
 
@@ -46,7 +46,7 @@ Real-time GitHub activity dashboard. Log in with GitHub, point a webhook at the 
 
 ## Run locally
 
-Prerequisites: Node.js 18+, a free MongoDB Atlas cluster, a free Upstash Redis database, and [ngrok](https://ngrok.com) (so GitHub can reach your machine).
+Prerequisites: Node.js 18+, a free MongoDB Atlas cluster, and [ngrok](https://ngrok.com) (so GitHub can reach your machine).
 
 **1. Install**
 
@@ -68,7 +68,6 @@ Prerequisites: Node.js 18+, a free MongoDB Atlas cluster, a free Upstash Redis d
 | `GITHUB_CALLBACK_URL` | `http://localhost:5000/auth/github/callback` |
 | `SESSION_SECRET` | Long random string |
 | `WEBHOOK_SECRET` | Any random string; reused when you create the webhook |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | From your Upstash database (REST API tab) |
 | `PORT` | `5000` |
 | `CLIENT_URL` | `http://localhost:5173` |
 | `NODE_ENV` | `development` (use `production` only when hosting frontend and backend on different domains: it enables secure, cross-site cookies) |
